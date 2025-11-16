@@ -2,23 +2,16 @@
 import { GoogleGenAI } from "@google/genai";
 import type { GroundingChunk } from '../types';
 
-let aiInstance: GoogleGenAI | null = null;
-const getAI = () => {
-  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "Gemini API key is not configured. Please set GEMINI_API_KEY in your .env.local."
-    );
-  }
-  if (!aiInstance) {
-    aiInstance = new GoogleGenAI({ apiKey });
-  }
-  return aiInstance;
-};
+if (!process.env.API_KEY) {
+    throw new Error("API_KEY environment variable not set");
+}
 
-interface JobSearchResult {
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+export interface JobSearchResult {
   summary: string;
   sources: GroundingChunk[];
+  rawJobDescriptions: string;
 }
 
 export const analyzeResumeAndFindJobs = async (resumeText: string, onProgress: (message: string) => void): Promise<JobSearchResult> => {
@@ -26,10 +19,9 @@ export const analyzeResumeAndFindJobs = async (resumeText: string, onProgress: (
     // Step 1: Use Gemini with Google Search to find job descriptions
     onProgress("Analyzing your resume and searching for relevant jobs...");
     const searchModel = "gemini-2.5-flash";
-    const searchPrompt = `Based on the following resume, search the web for 3-5 highly relevant job postings for software engineering or related roles. Return the full text of each job description found. \n\n---RESUME---\n${resumeText}`;
+    const searchPrompt = `Based on the following resume, search the web for 3-5 highly relevant job postings for software engineering or related roles. For each job posting found, extract and return the job title, company name, and a detailed summary of the key responsibilities and qualifications. \n\n---RESUME---\n${resumeText}`;
     
-  const ai = getAI();
-  const searchResult = await ai.models.generateContent({
+    const searchResult = await ai.models.generateContent({
         model: searchModel,
         contents: searchPrompt,
         config: {
@@ -38,16 +30,10 @@ export const analyzeResumeAndFindJobs = async (resumeText: string, onProgress: (
     });
 
     const jobDescriptions = searchResult.text;
-    const sources: GroundingChunk[] = (searchResult.candidates?.[0]?.groundingMetadata?.groundingChunks || [])
-      .map((chunk: any) => {
-        const uri: string | undefined = chunk?.web?.uri;
-        const title: string | undefined = chunk?.web?.title ?? uri;
-        return uri ? { web: { uri, title: title || uri } } : undefined;
-      })
-      .filter(Boolean) as GroundingChunk[];
+    const sources = searchResult.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
     if (!jobDescriptions || jobDescriptions.trim() === "") {
-        throw new Error("Could not find any job descriptions based on the provided resume.");
+        throw new Error("The AI could not find any job descriptions based on the provided resume. This might be due to a very niche resume or a temporary issue with the search. Please try rephrasing your resume or try again later.");
     }
 
     // Step 2: Use Gemini Pro to summarize the job descriptions
@@ -78,7 +64,7 @@ export const analyzeResumeAndFindJobs = async (resumeText: string, onProgress: (
     onProgress("Finalizing your personalized report...");
     const summary = summaryResult.text;
 
-    return { summary, sources };
+    return { summary, sources, rawJobDescriptions: jobDescriptions };
   } catch (error) {
     console.error("Error in Gemini service:", error);
     if (error instanceof Error) {

@@ -15,7 +15,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
     html = html.replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold mt-8 mb-4 border-b-2 pb-2">$1</h1>');
     
     // Bold text (**text**)
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-stone-800 dark:text-stone-100">$1</strong>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-slate-800 dark:text-slate-100">$1</strong>');
     
     // Unordered lists (- item or * item)
     html = html.replace(/^\s*[-*] (.*$)/gim, '<li class="ml-6 mb-1">$1</li>');
