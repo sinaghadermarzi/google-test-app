@@ -2,11 +2,19 @@
 import { GoogleGenAI } from "@google/genai";
 import type { GroundingChunk } from '../types';
 
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+const getAI = () => {
+  const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "Gemini API key is not configured. Please set GEMINI_API_KEY in your .env.local."
+    );
+  }
+  if (!aiInstance) {
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 interface JobSearchResult {
   summary: string;
@@ -20,7 +28,8 @@ export const analyzeResumeAndFindJobs = async (resumeText: string, onProgress: (
     const searchModel = "gemini-2.5-flash";
     const searchPrompt = `Based on the following resume, search the web for 3-5 highly relevant job postings for software engineering or related roles. Return the full text of each job description found. \n\n---RESUME---\n${resumeText}`;
     
-    const searchResult = await ai.models.generateContent({
+  const ai = getAI();
+  const searchResult = await ai.models.generateContent({
         model: searchModel,
         contents: searchPrompt,
         config: {
@@ -29,7 +38,13 @@ export const analyzeResumeAndFindJobs = async (resumeText: string, onProgress: (
     });
 
     const jobDescriptions = searchResult.text;
-    const sources = searchResult.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    const sources: GroundingChunk[] = (searchResult.candidates?.[0]?.groundingMetadata?.groundingChunks || [])
+      .map((chunk: any) => {
+        const uri: string | undefined = chunk?.web?.uri;
+        const title: string | undefined = chunk?.web?.title ?? uri;
+        return uri ? { web: { uri, title: title || uri } } : undefined;
+      })
+      .filter(Boolean) as GroundingChunk[];
 
     if (!jobDescriptions || jobDescriptions.trim() === "") {
         throw new Error("Could not find any job descriptions based on the provided resume.");
