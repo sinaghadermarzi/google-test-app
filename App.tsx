@@ -43,12 +43,12 @@ const App: React.FC = () => {
   const hasResults = jobSummary || sources.length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 font-sans">
-      <header className="bg-white dark:bg-slate-800/50 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-900 font-sans">
+      <header className="bg-white dark:bg-stone-800/50 backdrop-blur-sm shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <SparkleIcon className="w-8 h-8 text-primary-500" />
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">AI Job Hunter</h1>
+            <h1 className="text-2xl font-bold text-stone-800 dark:text-stone-100">AI Job Hunter</h1>
           </div>
         </div>
       </header>
@@ -56,26 +56,26 @@ const App: React.FC = () => {
       <main className="container mx-auto p-4 md:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8">
           {/* Input Panel */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8 lg:mb-0 h-fit sticky top-24">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-6 mb-8 lg:mb-0 h-fit sticky top-24">
             <div className="flex items-center mb-4">
               <DocumentTextIcon className="w-6 h-6 mr-2 text-primary-600 dark:text-primary-400" />
               <h2 className="text-xl font-semibold">Your Resume</h2>
             </div>
-            <p className="text-slate-500 dark:text-slate-400 mb-4">
+            <p className="text-stone-600 dark:text-stone-400 mb-4">
               Paste the text of your resume below. Our AI will analyze it to find the most relevant job opportunities for you.
             </p>
             <textarea
               value={resumeText}
               onChange={(e) => setResumeText(e.target.value)}
               placeholder="Paste your resume here..."
-              className="w-full h-80 p-3 border border-slate-300 dark:border-slate-600 rounded-md bg-slate-50 dark:bg-slate-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-200"
+              className="w-full h-80 p-3 border border-stone-300 dark:border-stone-600 rounded-md bg-stone-50 dark:bg-stone-700 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-200"
               disabled={isLoading}
             />
             {error && <p className="text-red-500 mt-2">{error}</p>}
             <button
               onClick={handleSearch}
               disabled={isLoading || !resumeText.trim()}
-              className="mt-4 w-full flex items-center justify-center bg-primary-600 text-white font-bold py-3 px-4 rounded-md hover:bg-primary-700 disabled:bg-slate-400 dark:disabled:bg-slate-600 disabled:cursor-not-allowed transition duration-300"
+              className="mt-4 w-full flex items-center justify-center bg-primary-600 text-white font-bold py-3 px-4 rounded-md hover:bg-primary-700 disabled:bg-stone-400 dark:disabled:bg-stone-600 disabled:cursor-not-allowed transition duration-300"
             >
               {isLoading ? (
                 <>
@@ -95,7 +95,7 @@ const App: React.FC = () => {
           </div>
           
           {/* Output Panel */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 min-h-[500px]">
+          <div className="bg-white dark:bg-stone-800 rounded-xl shadow-lg p-6 min-h-[500px]">
              <div className="flex items-center mb-4">
                 <SparkleIcon className="w-6 h-6 mr-2 text-primary-600 dark:text-primary-400" />
                 <h2 className="text-xl font-semibold">Job Analysis Report</h2>
@@ -103,8 +103,8 @@ const App: React.FC = () => {
             {isLoading && <LoadingSpinner message={loadingMessage} />}
             
             {!isLoading && !hasResults && (
-              <div className="text-center text-slate-500 dark:text-slate-400 mt-20">
-                  <DocumentTextIcon className="mx-auto w-16 h-16 text-slate-300 dark:text-slate-600" />
+                <div className="text-center text-stone-600 dark:text-stone-400 mt-20">
+                  <DocumentTextIcon className="mx-auto w-16 h-16 text-stone-300 dark:text-stone-600" />
                   <p className="mt-4 text-lg">Your personalized job report will appear here.</p>
               </div>
             )}
