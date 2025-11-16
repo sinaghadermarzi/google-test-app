@@ -1,0 +1,5 @@
+{
+  "name": "AI Job Hunter",
+  "description": "An application that takes a user's resume, searches the web for relevant jobs using Google Search grounding with Gemini, and provides a summary of the top job descriptions.",
+  "requestFramePermissions": []
+}
