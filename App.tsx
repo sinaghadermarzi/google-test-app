@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { analyzeResumeAndFindJobs } from './services/geminiService';
 import type { GroundingChunk, Source } from './types';
@@ -6,8 +5,11 @@ import SparkleIcon from './components/icons/SparkleIcon';
 import DocumentTextIcon from './components/icons/DocumentTextIcon';
 import LoadingSpinner from './components/LoadingSpinner';
 import MarkdownRenderer from './components/MarkdownRenderer';
+import { useTheme } from './hooks/useTheme';
+import SunIcon from './components/icons/SunIcon';
+import MoonIcon from './components/icons/MoonIcon';
 
-type ActiveTab = 'summary' | 'raw';
+type ActiveTab = 'summary' | 'raw' | 'sources';
 
 const App: React.FC = () => {
   const [resumeText, setResumeText] = useState('');
@@ -18,6 +20,7 @@ const App: React.FC = () => {
   const [sources, setSources] = useState<Source[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('summary');
+  const [theme, toggleTheme] = useTheme();
 
   const handleSearch = useCallback(async () => {
     if (!resumeText.trim()) {
@@ -79,6 +82,17 @@ const App: React.FC = () => {
             <SparkleIcon className="w-8 h-8 text-primary-500" />
             <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">AI Job Hunter</h1>
           </div>
+           <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 dark:focus-visible:ring-offset-slate-800 transition-colors"
+              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? (
+                <MoonIcon className="w-6 h-6" />
+              ) : (
+                <SunIcon className="w-6 h-6" />
+              )}
+            </button>
         </div>
       </header>
 
@@ -145,40 +159,47 @@ const App: React.FC = () => {
                   <nav className="-mb-px flex space-x-4" aria-label="Tabs">
                     <TabButton tabName="summary" currentTab={activeTab} onClick={setActiveTab}>Personalized Summary</TabButton>
                     <TabButton tabName="raw" currentTab={activeTab} onClick={setActiveTab}>Raw Job Postings</TabButton>
+                    <TabButton tabName="sources" currentTab={activeTab} onClick={setActiveTab}>Search Sources</TabButton>
                   </nav>
                 </div>
 
                 <div className="mt-6">
                   {activeTab === 'summary' && (
-                    <div>
-                      {jobSummary && <MarkdownRenderer content={jobSummary} />}
-                      {sources.length > 0 && (
-                        <div className="mt-8">
-                          <h3 className="text-xl font-semibold border-t dark:border-slate-700 pt-6">Sources</h3>
-                          <ul className="mt-3 list-none p-0 space-y-2">
-                            {sources.map((source, index) => (
-                              <li key={index}>
-                                <a
-                                  href={source.uri}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-primary-600 dark:text-primary-400 hover:underline break-all"
-                                >
-                                  {source.title || source.uri}
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
+                     <MarkdownRenderer content={jobSummary} />
                   )}
                   {activeTab === 'raw' && (
                     <div>
                         <h3 className="text-lg font-semibold mb-3 text-slate-600 dark:text-slate-300">Raw Job Descriptions Found by AI</h3>
-                        <pre className="whitespace-pre-wrap bg-slate-100 dark:bg-slate-800/50 p-4 rounded-md text-sm leading-6 font-mono text-slate-700 dark:text-slate-300 max-h-[600px] overflow-y-auto">
+                        <pre className="whitespace-pre-wrap bg-slate-100 dark:bg-slate-900/50 p-4 rounded-md text-sm leading-6 font-mono text-slate-700 dark:text-slate-300 max-h-[600px] overflow-y-auto">
                             {rawJobDescriptions}
                         </pre>
+                    </div>
+                  )}
+                  {activeTab === 'sources' && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2 text-slate-600 dark:text-slate-300">Sources Used by AI</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        These are the web pages the AI grounded its search on to find job descriptions.
+                      </p>
+                      {sources.length > 0 ? (
+                        <ul className="list-none p-0 space-y-2">
+                          {sources.map((source, index) => (
+                            <li key={index} className="border border-slate-200 dark:border-slate-700 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <a
+                                href={source.uri}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block p-3"
+                              >
+                                <p className="font-semibold text-primary-700 dark:text-primary-400 truncate">{source.title || 'Untitled Page'}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 break-all mt-1">{source.uri}</p>
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-slate-500 dark:text-slate-400">No sources were provided for this search.</p>
+                      )}
                     </div>
                   )}
                 </div>
